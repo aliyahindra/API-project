@@ -14,15 +14,15 @@ module.exports = {
     return queryInterface.bulkInsert(options, [
       {
         url: 'www.greenhouseimage.com',
-        preview: 1
+        preview: true
       },
       {
         url: 'www.bluehouseimage.com',
-        preview: 2
+        preview: true
       },
       {
         url: 'www.redhouseimage.com',
-        preview: 3
+        preview: false
       },
     ], {});
   },

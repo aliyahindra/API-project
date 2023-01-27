@@ -9,58 +9,155 @@ const router = express.Router();
 
 // GET all spots
 router.get('/', async (req, res) => {
-   const spots = await Spot.findAll({
-        include: [
-           {
-                model: Review,
-           },
-           {
-                model: SpotImage
-           }
-        ]
-   })
-//    console.log(spots)
-   let spotsList =  [];
-   spots.forEach(spot => {
-       spotsList.push(spot.toJSON())
-   })
-//    console.log(spotsList)
-   spotsList.forEach(spot => {
-        spot.SpotImages.forEach(image => {
-                // console.log(image)
-                if (image.preview === true) {
-                        // console.log(image.url)
-                 spot.preview = image.url
-                }
+        const spots = await Spot.findAll({
+                include: [
+                        {
+                                model: Review,
+                        },
+                        {
+                                model: SpotImage
+                        }
+                ]
         })
-        if (!spot.preview) {
-                spot.preview = 'no preview image found'
-        }
-        delete spot.SpotImages
-   })
-
-   spotsList.forEach(spot => {
-        spot.Reviews.forEach(review => {
-                let starRatings = []
-                let sum = 0
-                // console.log(review.stars)
-                starRatings.push(review.stars)
-                for (let star of starRatings) {
-                        console.log(star)
-                        sum += star
-                }
-                let average = sum / starRatings.length
-                spot.stars = average
-
+        //    console.log(spots)
+        let spotsList = [];
+        spots.forEach(spot => {
+                spotsList.push(spot.toJSON())
         })
-        delete spot.Reviews
-   })
+        //    console.log(spotsList)
+        spotsList.forEach(spot => {
+                spot.SpotImages.forEach(image => {
+                        // console.log(image)
+                        if (image.preview === true) {
+                                // console.log(image.url)
+                                spot.previewImage = image.url
+                        }
+                })
+                if (!spot.preview) {
+                        spot.previewImage = 'no preview image found'
+                }
+                delete spot.SpotImages
+        })
 
-   res.json({"Spots": spotsList})
+        spotsList.forEach(spot => {
+                spot.Reviews.forEach(review => {
+                        let starRatings = []
+                        let sum = 0
+                        // console.log(review.stars)
+                        starRatings.push(review.stars)
+                        for (let star of starRatings) {
+                                console.log(star)
+                                sum += star
+                        }
+                        let average = sum / starRatings.length
+                        spot.avgRating = average
+
+                })
+                delete spot.Reviews
+        })
+
+        res.json({ "Spots": spotsList })
 });
 
 
+// GET all Spots owned by Current USer
+router.get('/current', requireAuth, async (req, res, next) => {
+        const currSpots = await Spot.findAll({
+                where: { ownerId: req.user.id },
+        })
+        console.log(currSpots)
 
+        return res.json({ 'Spots': currSpots })
+})
+
+// GET details of a Spot from an id
+router.get('/:spotId', async (req, res, next) => {
+        const { spotId } = req.params;
+        // const spotId = req.params.id
+
+        const spotById = await Spot.findAll({
+
+                where: {id: spotId},
+                include: [
+                        {
+                                model: Review
+                        },
+                        {
+                                model: SpotImage,
+                                attributes: [
+                                   'id',
+                                   'url',
+                                   'preview'
+                                ]
+
+
+
+                        },
+                        {
+                                model: User,
+                                attributes: [
+                                        'id',
+                                        'firstName',
+                                        'lastName'
+                                ]
+
+                        },
+
+                ]
+        })
+        console.log(spotById)
+
+        let spotList = [];
+        // spots.forEach(spot => {
+        //         spotsList.push(spot.toJSON())
+        // })
+        for (let spot of spotById) {
+                spotList.push(spot.toJSON())
+        }
+
+        spotList.forEach(spot => {
+                spot.Reviews.forEach(review => {
+                        let ratings = []
+                        let sum = 0
+                        // console.log(review.stars)
+                        ratings.push(review.stars)
+                        for (let star of ratings) {
+                                console.log(star)
+                                sum += star
+                        }
+
+                        spot.numReviews = ratings.length
+                        spot.avgStarRating = sum / ratings.length
+
+                })
+                delete spot.Reviews
+        })
+
+
+
+        if(!spotById.length) {
+        //      const err = new Error("Spot couldn't be found")
+        //      err.status = 404
+        //      next(err)
+        res.status(404)
+        return res.json({
+                message: "Spot couldn't be found",
+                statusCode: 404
+        })
+
+        } else {
+        return res.json(spotList[0])
+        }
+
+});
+
+// CREATE a Spot
+
+// ADD an Image to a Spot based on the SPot's id
+
+// EDIT a Spot
+
+// DELETE a Spot
 
 
 

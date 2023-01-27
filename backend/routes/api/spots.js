@@ -181,7 +181,7 @@ router.get('/:spotId', async (req, res, next) => {
     }
 });
 
-const validateNewSpot = [
+const validateSpot = [
     check('address')
       .exists({ checkFalsy: true })
       .notEmpty()
@@ -222,7 +222,7 @@ const validateNewSpot = [
     handleValidationErrors
   ];
 // CREATE a Spot
-router.post('/', requireAuth, validateNewSpot, async (req, res) => {
+router.post('/', requireAuth, validateSpot, async (req, res) => {
     const {user} = req
     const {address, city, state, country, lat, lng, name, description, price} = req.body;
 
@@ -284,9 +284,63 @@ router.post('/:spotId/images', requireAuth, async (req, res) => {
 
 });
 
+
 // EDIT a Spot
+router.put('/:spotId', requireAuth, validateSpot, async (req , res, next) => {
+    const { spotId } = req.params;
+    const { address, city, state, country, lat, lng, name, description, price } = req.body;
+
+    const editSpot = await Spot.findByPk(spotId);
+    if (!editSpot) {
+        res.status(404);
+        res.json({
+            message: "Spot couldn't be found",
+            statusCode: 404
+        })
+    }
+
+    if (editSpot) {
+        editSpot.update({
+            address,
+            city,
+            state,
+            country,
+            lat,
+            lng,
+            name,
+            description,
+            price
+        })
+        return res.json(editSpot)
+    } else {
+        const err = new Error('Invalid input');
+        err.status = 400;
+        err.title = 'Invalid Input';
+        err.errors = ['Invalid'];
+        return next(err)
+    }
+})
 
 // DELETE a Spot
+router.delete('/:spotId', requireAuth,  async (req, res) => {
+    const { spotId } = req.params;
+
+    const badSpot = await Spot.findByPk(spotId) ;
+
+    if (badSpot) {
+        badSpot.destroy();
+        return res.json({
+            message: "Successfully deleted",
+            statusCode: 200
+        })
+    } else {
+        res.status(404)
+        return res.json({
+            message: "Spot couldn't be found",
+            statusCode: 404
+        })
+    }
+})
 
 
 

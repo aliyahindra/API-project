@@ -142,7 +142,7 @@ router.get('/:spotId', async (req, res, next) => {
             },
         ]
     })
-    console.log(spotById)
+    // console.log(spotById)
 
     let spotList = [];
     // spots.forEach(spot => {
@@ -254,6 +254,35 @@ router.post('/', requireAuth, validateNewSpot, async (req, res) => {
 });
 
 // ADD an Image to a Spot based on the SPot's id
+router.post('/:spotId/images', requireAuth, async (req, res) => {
+    const { user } = req;
+    const { spotId } = req.params;
+    const { url, preview } = req.body;
+
+    const findSpot = await Spot.findByPk(spotId);
+    if (!findSpot) {
+        res.status(404)
+        res.json({
+            message: "Spot couldn't be found",
+            statusCode: 404
+        })
+    }
+
+    const spot = await SpotImage.create({
+        where: {spotId: spotId},
+        url,
+        preview
+    })
+    const payload = spot.toJSON()
+    if (payload) {
+        delete payload.createdAt
+        delete payload.updatedAt
+        console.log(payload)
+        return res.json(payload)
+    }
+
+
+});
 
 // EDIT a Spot
 

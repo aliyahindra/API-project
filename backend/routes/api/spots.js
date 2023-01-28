@@ -1,5 +1,5 @@
 const express = require('express')
-const { Spot, User, SpotImage, Review, ReviewImage } = require('../../db/models');
+const { Spot, User, SpotImage, Review, ReviewImage, Booking } = require('../../db/models');
 const { requireAuth } = require('../../utils/auth');
 const router = express.Router();
 const { check } = require('express-validator');
@@ -432,6 +432,47 @@ router.post('/:spotId/reviews', requireAuth, validateReview, async (req, res) =>
     }
 });
 
+// GET all Bookings for a Spot based on the Spot's id
+router.get('/:spotId/bookings', requireAuth, async (req, res) => {
+  const { spotId } = req.params;
+  const { user } = req
+
+  const findBookings = await Booking.findAll({
+    where: {spotId: spotId},
+    include: [
+      {
+        model: User,
+        attributes: [
+          'id',
+          'firstName',
+          'lastName'
+        ]
+      }
+    ]
+  })
+
+  let resArr = [];
+  findBookings.forEach(booking => {
+    resArr.push(booking.toJSON())
+  })
+  if (!resArr.length) {
+    res.status(404);
+    res.json({
+      message: "Spot couldn't be found",
+      statusCode: 404
+    })
+  }
+  // console.log(resArr)
+
+  for (let booking of resArr) {
+    if (booking.userId === user.id) {
+      return res.json(resArr)
+    } else {
+      delete booking.User
+      return res.json(resArr)
+    }
+  }
+});
 
 
 

@@ -14,33 +14,7 @@ const { handleValidationErrors } = require('../../utils/validation');
 // GET all Reviews of the Current Use
 router.get('/current', requireAuth, async (req, res) => {
     const { user } = req;
-
-    // const spots = await Spot.findAll({
-    //     where: { ownerId: user.id },
-    //     include: [{
-    //         model: SpotImage,
-    //     }]
-    // })
-
-    // let spotsList = [];
-    // spots.forEach(spot => {
-    //   spotsList.push(spot.toJSON())
-    // })
-    // //    console.log(spotsList)
-    // spotsList.forEach(spot => {
-    //   spot.SpotImages.forEach(image => {
-    //     // console.log(image)
-    //     if (image.preview === true) {
-    //       // console.log(image.url)
-    //       spot.previewImage = image.url
-    //     }
-    //   })
-    //   if (!spot.preview) {
-    //     spot.previewImage = 'no preview image found'
-    //   }
-    //   delete spot.SpotImages
-    // })
-
+    
     const userReviews = await Review.findAll({
         where: { userId: user.id },
         include: [

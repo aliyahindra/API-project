@@ -345,7 +345,7 @@ router.delete('/:spotId', requireAuth, async (req, res) => {
 //GET all Reviews by Spot id
 router.get('/:spotId/reviews', async (req, res) => {
   const { spotId }  = req.params;
-  // const { spot } = req;
+  const { user } = req;
 
   const spotReviews = await Review.findAll({
     where: {spotId: spotId},
@@ -367,9 +367,75 @@ router.get('/:spotId/reviews', async (req, res) => {
       }
     ]
   })
-
-  res.json({'Reviews': spotReviews})
+  if (spotReviews.length) {
+    res.json({'Reviews': spotReviews})
+  } else {
+    res.status(404);
+    res.json({
+      message: "Spot couldn't be found",
+      statusCode: 404
+    })
+  }
 })
+const validateReview = [
+  check('review')
+    .exists({ checkFalsy: true })
+    .notEmpty()
+    .withMessage("Review text is required"),
+  check('stars')
+    .exists({ checkFalsy: true })
+    .notEmpty()
+    .withMessage("Stars must be an integer from 1 to 5"),
+
+  handleValidationErrors
+];
+// CREATE a Review for a Spot based on the Spot's id
+router.post('/:spotId/reviews', requireAuth, validateReview, async (req, res) => {
+    const { spotId } = req.params;
+    const { spot } = req
+    const { user } = req
+    const { review, stars } = req.body;
+
+    const findSpot = await Spot.findByPk(spotId);
+  if (!findSpot) {
+    res.status(404);
+    res.json({
+      message: "Spot couldn't be found",
+      statusCode: 404
+    })
+  }
+
+  const userReview = await Review.findAll({
+    where: {userId: user.id}
+  });
+  if (userReview) {
+    res.status(403);
+    res.json({
+      message: "User already has a review for this spot",
+       statusCode: 403
+    })
+  }
+
+    const newReview = await Review.create({
+      spotId: spotId,
+      review,
+      stars
+    })
+    if (!newReview) {
+      const err = new Error('Invalid input');
+      err.status = 400;
+      err.title = 'Invalid Input';
+      err.errors = ['Invalid'];
+      return next(err)
+    }
+
+    if (newReview) {
+      return res.json(newReview)
+    }
+});
+
+
+
 
 
 module.exports = router;

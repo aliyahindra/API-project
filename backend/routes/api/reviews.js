@@ -100,7 +100,7 @@ router.get('/current', requireAuth, async (req, res) => {
 
 
 
-// CREATE a Review for a Spot based on the Spot's id
+
 
 
 

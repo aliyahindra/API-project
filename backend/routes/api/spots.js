@@ -342,44 +342,34 @@ router.delete('/:spotId', requireAuth, async (req, res) => {
   }
 })
 
+//GET all Reviews by Spot id
+router.get('/:spotId/reviews', async (req, res) => {
+  const { spotId }  = req.params;
+  // const { spot } = req;
 
+  const spotReviews = await Review.findAll({
+    where: {spotId: spotId},
+    include: [
+      {
+        model: User,
+        attributes: [
+          'id',
+          'firstName',
+          'lastName'
+        ]
+      },
+      {
+        model: ReviewImage,
+        attributes: [
+          'id',
+          'url'
+        ]
+      }
+    ]
+  })
 
+  res.json({'Reviews': spotReviews})
+})
 
-//GET all spots
-// router.get('/', async (req, res) => {
-//         const spots = await Spot.findAll({
-//         })
-// return res.json({ "Spots": spots })
-// })
-
-
-
-
-//GET all Spots owned by the Current User
-// need to check
-// router.get('/current', requireAuth, async (req, res) => {
-//     const userSpots = await Spot.findAll({
-//         include: [
-//             {model: User}
-//         ],
-//         where: { ownerId: req.user.id }
-//     })
-//     return res.json(userSpots)
-// })
-
-// GET detail of a spot from an id
-// router.get('/:spotId', async (req, res) => {
-//     const { spotId } = req.params;
-
-//     const spot = await Spot.findAll({
-//         include: [
-//             {model: SpotImage},
-//             {model: User}
-//         ],
-//         where: {spotId: spot.id}
-//     })
-
-//     return res.json(spot);
-// })
 
 module.exports = router;

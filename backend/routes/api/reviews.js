@@ -142,8 +142,49 @@ router.post('/:reviewId/images', requireAuth, async (req, res) => {
 });
 
 
-// EDIT a Review
+const validateReview = [
+  check('review')
+    .exists({ checkFalsy: true })
+    .notEmpty()
+    .withMessage("Review text is required"),
+  check('stars')
+    // .exists({ checkFalsy: true })
+    // .notEmpty()
+    .isInt({min: 1, max: 5})
+    .withMessage("Stars must be an integer from 1 to 5"),
 
+  handleValidationErrors
+];
+
+// EDIT a Review
+router.put('/:reviewId', requireAuth, validateReview, async (req, res, next) => {
+  const { reviewId } = req.params;
+  const { review, stars } = req.body;
+
+  const editReview = await Review.findByPk(reviewId);
+  if (!editReview) {
+    res.status(404);
+    res.json({
+      message: "Review couldn't be found",
+      statusCode: 404
+    })
+  }
+  if (editReview) {
+    editReview.update({
+
+      review,
+      stars,
+
+    })
+    return res.json(editReview)
+  } else {
+    const err = new Error('Invalid input');
+    err.status = 400;
+    err.title = 'Invalid Input';
+    err.errors = ['Invalid'];
+    return next(err)
+  }
+})
 
 
 // DELETE A REVIEW

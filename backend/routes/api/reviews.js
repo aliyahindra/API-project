@@ -56,7 +56,8 @@ router.get('/current', requireAuth, async (req, res) => {
                 model: Spot,
                 attributes: { exclude: [
                     'createdAt',
-                    'updatedAt'
+                    'updatedAt',
+                    'description'
                 ]},
                 include: [{model: SpotImage}]
             },
@@ -96,8 +97,6 @@ router.get('/current', requireAuth, async (req, res) => {
     res.json({'Reviews': reviewList})
 })
 
-
-//GET all Reviews by Spot id
 
 
 

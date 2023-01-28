@@ -280,8 +280,6 @@ router.post('/:spotId/images', requireAuth, async (req, res) => {
     console.log(payload)
     return res.json(payload)
   }
-
-
 });
 
 

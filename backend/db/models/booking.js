@@ -29,10 +29,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER
     },
     startDate: {
-      type: DataTypes.DATE
+      type: DataTypes.DATE,
+      // validate: {
+      //   isAfter: Date()
+      // }
     },
     endDate: {
-      type: DataTypes.DATE
+      type: DataTypes.DATE,
+      // validate: {
+      //   isAfter: this.startDate
+      // }
     }
   }, {
     sequelize,

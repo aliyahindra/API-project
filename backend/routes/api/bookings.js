@@ -54,7 +54,7 @@ router.get('/current', requireAuth, async (req, res) => {
 
 
 
-// CREATE a Booking from a spot based on the spot's id
+
 
 
 

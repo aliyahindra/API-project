@@ -476,5 +476,50 @@ router.get('/:spotId/bookings', requireAuth, async (req, res) => {
 
 
 
+// CREATE a Booking from a spot based on the spot's id
+router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
+  const { spotId } = req.params;
+  const { user } = req;
+  const { userId, startDate, endDate } = req.body;
+
+  const findSpot = await Spot.findByPk(spotId);
+  if (!findSpot) {
+    res.status(404);
+    res.json({
+      message: "Spot couldn't be found",
+      statusCode: 404
+    })
+  }
+
+  const newBooking = await Booking.create({
+    spotId,
+    userId: spotId,
+    startDate,
+    endDate
+  })
+
+//   console.log(newBooking)
+
+  let bookingObj = newBooking.toJSON()
+  console.log(bookingObj)
+
+    if (bookingObj.endDate.getTime() < bookingObj.startDate.getTime()) {
+      res.status(400);
+      return res.json({
+        message: "Validation error",
+        statusCode: 400,
+        errors: {
+        endDate: "endDate cannot be on or before startDate"
+        }
+      })
+    } else {
+        return res.json(bookingObj)
+    }
+
+// res.json(newBooking)
+})
+
+
+
 
 module.exports = router;

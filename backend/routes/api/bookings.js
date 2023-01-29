@@ -7,6 +7,7 @@ const { handleValidationErrors } = require('../../utils/validation');
 const { ResultWithContext } = require('express-validator/src/chain');
 
 
+
 //MY CODE
 
 
@@ -50,16 +51,90 @@ router.get('/current', requireAuth, async (req, res) => {
 });
 
 
-
-
-
-
-
-
-
-
 // EDIT a Booking
+router.put('/:bookingId', requireAuth, async (req, res) => {
+  const { spot } = req;
+    const { bookingId } = req.params;
+    const { startDate, endDate } = req.body;
 
+
+    const editBooking = await Booking.findByPk(bookingId);
+
+    if (!editBooking) {
+        res.status(404);
+        return res.json({
+            message: "Booking couldn't be found",
+            statusCode: 404
+        })
+    }
+
+    // let bookingObj = editBooking.toJSON()
+    let today = new Date()
+
+
+  if (endDate <= startDate) {
+      res.status(400);
+      return res.json({
+        message: "Validation error",
+        statusCode: 400,
+        errors: {
+        endDate: "endDate cannot be on or before startDate"
+        }
+      })
+    };
+
+  if (endDate < today.toJSON()) {
+    res.status(403);
+    res.json({
+     message: "Past bookings can't be modified",
+     statusCode: 403
+     })
+  }
+
+// console.log(editBooking)
+let bookingObj = editBooking.toJSON()
+// console.log(bookingObj)
+
+const allBookings = await Booking.findAll({
+  where: {spotId: bookingObj.spotId}
+})
+let bookingArr = []
+allBookings.forEach(booking => {
+  bookingArr.push(booking.toJSON())
+})
+console.log(bookingArr)
+
+for (let booking of bookingArr) {
+  if (startDate === booking.startDate || (startDate >= booking.startDate && startDate <= booking.endDate)) {
+    res.status(403);
+    res.json({
+      message: "Sorry, this spot is already booked for the specified dates",
+      statusCode: 403,
+      errors: {
+      startDate: "Start date conflicts with an existing booking",
+      }
+    })
+  }
+  if (endDate === booking.endDate || (endDate >= booking.startDate && endDate <= booking.endDate)) {
+    res.status(403);
+    res.json({
+      message: "Sorry, this spot is already booked for the specified dates",
+      statusCode: 403,
+      errors: {
+        endDate: "End date conflicts with an existing booking",
+      }
+    })
+  }
+}
+
+    if (editBooking) {
+      editBooking.update({
+        startDate,
+        endDate
+      })
+      return res.json(editBooking)
+    }
+})
 
 
 // DELETE A Booking
@@ -67,13 +142,56 @@ router.get('/current', requireAuth, async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
 module.exports = router;
+
+
+
+// let bookingObj = editBooking.toJSON()
+// let today = new Date()
+// console.log(bookingObj.endDate.getTime())
+// console.log(bookingObj.startDate.getTime())
+// console.log(today.getTime())
+
+
+
+// if (bookingObj.endDate < bookingObj.startDate) {
+//   res.status(400);
+//   return res.json({
+//     message: "Validation error",
+//     statusCode: 400,
+//     errors: {
+//     endDate: "endDate cannot come before startDate"
+//     }
+//   })
+// } else if (bookingObj.endDate < today) {
+//   res.status(403);
+//   res.json({
+//     message: "Past bookings can't be modified",
+//     statusCode: 403
+//   })
+// }
+
+
+
+
+
+    //   if (bookingObj.endDate.getTime() < bookingObj.startDate.getTime()) {
+    //     res.status(400);
+    //     return res.json({
+    //       message: "Validation error",
+    //       statusCode: 400,
+    //       errors: {
+    //       endDate: "endDate cannot be on or before startDate"
+    //       }
+    //     })
+    //   };
+    //   let today = new Date();
+    // //   console.log(today.getFullYear())
+    // //   console.log(bookingObj.startDate)
+    //   if (bookingObj.startDate.getFullYear() < today.getFullYear() || bookingObj.endDate.getFullYear() < today.getFullYear()) {
+    //     res.status(403);
+    //     return res.json({
+    //         message: "Past bookings can't be modified",
+    //         statusCode: 403
+    //     })
+    //   }

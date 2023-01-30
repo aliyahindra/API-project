@@ -1,6 +1,6 @@
 'use strict';
 const bcrypt = require("bcryptjs");
-const { ReviewImages, Review, Booking, Spot, SpotImage } = require('../models')
+const { ReviewImage, Review, Booking, Spot, SpotImage } = require('../models')
 
 let options = {};
 if (process.env.NODE_ENV === 'production') {

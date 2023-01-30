@@ -69,6 +69,13 @@ router.put('/:bookingId', requireAuth, async (req, res) => {
       statusCode: 404
     })
   }
+  let bookingObject = editBooking.toJSON()
+  if (bookingObject.userId !== req.user.id) {
+      res.status(400);
+      res.json({
+          message: 'Authorization required'
+        })
+      }
 
   // let bookingObj = editBooking.toJSON()
   let today = new Date()
@@ -100,14 +107,23 @@ router.put('/:bookingId', requireAuth, async (req, res) => {
   const allBookings = await Booking.findAll({
     where: { spotId: bookingObj.spotId }
   })
+  // console.log(allBookings)
   let bookingArr = []
   allBookings.forEach(booking => {
     bookingArr.push(booking.toJSON())
   })
-  console.log(bookingArr)
+  // console.log(bookingArr)
+  // console.log(new Date (startDate))
+
+  let newStartDate = new Date(startDate)
+  let newEndDate = new Date(endDate)
+
 
   for (let booking of bookingArr) {
-    if (startDate === booking.startDate || (startDate >= booking.startDate && startDate <= booking.endDate)) {
+    // console.log(booking.endDate)
+    if (newStartDate === booking.startDate ||
+      newStartDate === booking.endDate ||
+      (newStartDate >= booking.startDate && newStartDate <= booking.endDate)) {
       res.status(403);
       res.json({
         message: "Sorry, this spot is already booked for the specified dates",
@@ -117,7 +133,9 @@ router.put('/:bookingId', requireAuth, async (req, res) => {
         }
       })
     }
-    if (endDate === booking.endDate || (endDate >= booking.startDate && endDate <= booking.endDate)) {
+    if (newEndDate === booking.endDate ||
+      newEndDate === booking.startDate ||
+      (newEndDate >= booking.startDate && newEndDate <= booking.endDate)) {
       res.status(403);
       return res.json({
         message: "Sorry, this spot is already booked for the specified dates",
@@ -155,8 +173,6 @@ router.delete('/:bookingId', requireAuth, async (req, res) => {
   }
 
   let bookingObj = badBooking.toJSON()
-  // console.log(req.user.id)
-  // console.log(bookingObj.userId)
   console.log(bookingObj)
   if (bookingObj.userId !== req.user.id) {
       res.status(400);

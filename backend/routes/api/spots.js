@@ -57,16 +57,44 @@ router.get('/', async (req, res) => {
 
 
   if (maxLat) {
-    where['lat'] = { [Op.lte]: maxLat };
+    if (Number.isInteger(parseInt(maxLat))) {
+      where['lat'] = { [Op.lte]: maxLat };
+    } else {
+      res.status(400)
+      res.json({
+        message: "Maximum latitude is invalid"
+      })
+    }
   }
   if (minLat) {
-    where['lat'] = { [Op.gte]: minLat };
+    if (Number.isInteger(parseInt(minLat))) {
+      where['lat'] = { [Op.gte]: minLat };
+    } else {
+      res.status(400)
+      res.json({
+        message: "Minimum latitude is invalid"
+      })
+    }
   }
   if (maxLng) {
-    where['lng'] = { [Op.lte]: maxLng };
+    if (Number.isInteger(parseInt(maxLng))) {
+      where['lng'] = { [Op.lte]: maxLng };
+    } else {
+      res.status(400)
+      res.json({
+        message: "Maximum longitude is invalid"
+      })
+    }
   }
   if (minLng ) {
-    where['lng'] = { [Op.gte]: minLng };
+    if (Number.isInteger(parseInt(minLng))) {
+      where['lng'] = { [Op.gte]: minLng };
+    } else {
+      res.status(400)
+      res.json({
+        message: "Minimum longitude is invalid"
+      })
+    }
   }
   if (minPrice) {
     if (minPrice >= 0) {

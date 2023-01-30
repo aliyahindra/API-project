@@ -48,11 +48,23 @@ module.exports = (sequelize, DataTypes) => {
     },
     lat: {
       type: DataTypes.DECIMAL,
-      allowNull: true
+      allowNull: true,
+      validate: {
+        isDecimal: {
+          args: true,
+          msg: 'error: latitude is invalid'
+        }
+      }
     },
     lng: {
       type: DataTypes.DECIMAL,
-      allowNull: true
+      allowNull: true,
+      validate: {
+        isDecimal: {
+          args: true,
+          msg: 'error: longitude is invalid'
+        }
+      }
     },
     name: {
       type: DataTypes.STRING,
@@ -68,7 +80,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL,
       allowNull: true,
       validate: {
-        min: 0
+        min: {
+          args: 1,
+          msg: 'error: price must be greater than or equal to 0'
+        }
       }
     }
   }, {

@@ -11,15 +11,14 @@ const { Op } = require('sequelize');
 // My routes
 // const validateQueryError = [
 //   check('page')
-//   .exists({ checkFalsey: true})
+
 //   .isInt({min: 1})
 //   .withMessage("Page must be greater than or equal to 1"),
 //   check('size')
-//   .exists({checkFalsey: true})
+//   // .exists({checkFalsey: true})
 //   .isInt({min: 1})
 //   .withMessage('Size must be greater than or equal to 1'),
-//   // check('maxPrice')
-//   // .exists({checkFalsey: true}),
+
 
 //   handleValidationErrors
 
@@ -27,80 +26,72 @@ const { Op } = require('sequelize');
 
 //// GET all spots ////
 router.get('/', async (req, res) => {
-  let { page, size, minLat, maxLat, minLng, maxLng, minPrice, maxPrice } = req.query;
+  let { page = 1, size = 20, minLat, maxLat, minLng, maxLng, minPrice, maxPrice } = req.query;
 
   const pagination = {};
-  let query = {
-    where: {},
-  }
+  // let query = {
+  //   where: {},
+  // }
+  const where = {}
 
   page = parseInt(page);
   size = parseInt(size);
 
-  if (Number.isNaN(page) || page < 1) page = 1
-  if (Number.isNaN(size) || size < 1) size = 20;
+  if (Number.isNaN(page) || page < 1) {
+    res.status(400)
+    res.json({
+      message: "Page must be greater than or equal to 1"
+    })
+  }
+  if (Number.isNaN(size) || size < 1) {
+    res.status(400)
+    res.json({
+      message: "Size must be greater than or equal to 1"
+    })
+  }
   if (page > 10) page = 10
   if (size > 20) size = 20;
 
   pagination.limit = size;
   pagination.offset = (page - 1) * size
 
-  maxPrice = parseInt(maxPrice);
-  minPrice = parseInt(minPrice);
-  maxLat = parseInt(maxLat);
-  minLat = parseInt(minLat);
-  maxLng = parseInt(maxLng);
-  minLng = parseInt(minLng);
 
   if (maxLat) {
-    query.where.lat = {
-      [Op.lte]: maxLat
+    where['lat'] = { [Op.lte]: maxLat };
+  }
+  if (minLat) {
+    where['lat'] = { [Op.gte]: minLat };
+  }
+  if (maxLng) {
+    where['lng'] = { [Op.lte]: maxLng };
+  }
+  if (minLng ) {
+    where['lng'] = { [Op.gte]: minLng };
+  }
+  if (minPrice) {
+    if (minPrice >= 0) {
+      where['price'] = { [Op.gte]: minPrice };
+    } else {
+      res.status(400)
+      res.json({
+        message: "Minimum price must be greater than or equal to 0"
+      })
     }
-  };
-  if (minLat)
-    query.where.lat = {
-      [Op.gte]: minLat
-
-    };
-  if (maxLat && minLat)
-    query.where.lat = {
-      [Op.between]: [minLat, maxLat]
-
-    };
-
-  if (maxLng)
-    query.where.lat = {
-      [Op.lte]: maxLng
-    };
-  if (minLng)
-    query.where.lat = {
-      [Op.gte]: minLng
-
-    };
-  if (maxLng && minLng)
-    query.where.lat = {
-      [Op.between]: [minLat, maxLat]
-
-    };
-  if (maxPrice)
-    query.where.price = {
-      [Op.lte]: maxPrice
-
-    };
-  if (minPrice)
-    query.where.price = {
-      [Op.gte]: minPrice
-
-    };
-  if (maxPrice && minPrice)
-    query.where.price = {
-      [Op.between]: [minPrice, maxPrice]
-
-    };
+  }
+  if (maxPrice )  {
+    if (maxPrice >= 0) {
+      where['price'] = { [Op.lte]: maxPrice };
+    } else {
+      res.status(400)
+      res.json({
+        message: "Maximum price must be greater than or equal to 0"
+      })
+    }
+  }
 
   ///GET SPOTs
   const spots = await Spot.findAll({
-    query,
+    where,
     include: [
       {
         model: Review,
@@ -1043,3 +1034,60 @@ module.exports = router;
 //     })
 //   }
 // }
+
+
+
+
+  // maxPrice = parseInt(maxPrice);
+  // minPrice = parseInt(minPrice);
+  // maxLat = parseInt(maxLat);
+  // minLat = parseInt(minLat);
+  // maxLng = parseInt(maxLng);
+  // minLng = parseInt(minLng);
+  // // console.log(maxPrice)
+
+  // if (maxLat) {
+  //   query.where.lat = {
+  //     [Op.lte]: maxLat
+  //   }
+  // };
+  // if (minLat)
+  //   query.where.lat = {
+  //     [Op.gte]: minLat
+
+  //   };
+  // if (maxLat && minLat)
+  //   query.where.lat = {
+  //     [Op.between]: [minLat, maxLat]
+
+  //   };
+
+  // if (maxLng)
+  //   query.where.lat = {
+  //     [Op.lte]: maxLng
+  //   };
+  // if (minLng)
+  //   query.where.lat = {
+  //     [Op.gte]: minLng
+
+  //   };
+  // if (maxLng && minLng)
+  //   query.where.lat = {
+  //     [Op.between]: [minLat, maxLat]
+
+  //   };
+  // if (maxPrice)
+  //   query.where.price = {
+  //     [Op.lte]: maxPrice
+
+  //   };
+  // if (minPrice)
+  //   query.where.price = {
+  //     [Op.gte]: minPrice
+
+  //   };
+  // if (maxPrice && minPrice)
+  //   query.where.price = {
+  //     [Op.between]: [minPrice, maxPrice]
+
+  //   };

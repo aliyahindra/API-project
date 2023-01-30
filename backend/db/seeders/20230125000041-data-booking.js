@@ -1,5 +1,6 @@
 'use strict';
 const bcrypt = require("bcryptjs");
+const { Booking, Spot, SpotImage } = require('../models')
 
 /** @type {import('sequelize-cli').Migration} */
 

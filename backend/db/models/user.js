@@ -45,10 +45,10 @@ module.exports = (sequelize, DataTypes) => {
       User.hasMany(models.Spot, {foreignKey: 'ownerId', onDelete: 'CASCADE'});
       User.hasMany(models.Review, {foreignKey: 'userId', onDelete: 'CASCADE'});
       User.belongsToMany(models.Spot, {
-        through: models.Booking
+        through: models.Booking, onDelete: 'CASCADE'
       })
       User.belongsToMany(models.Spot, {
-        through: models.Review
+        through: models.Review, onDelete: 'CASCADE'
       })
     }
   };

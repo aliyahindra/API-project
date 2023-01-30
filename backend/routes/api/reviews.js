@@ -14,7 +14,7 @@ const { handleValidationErrors } = require('../../utils/validation');
 // GET all Reviews of the Current Use
 router.get('/current', requireAuth, async (req, res) => {
     const { user } = req;
-    
+
     const userReviews = await Review.findAll({
         where: { userId: user.id },
         include: [
@@ -45,18 +45,24 @@ router.get('/current', requireAuth, async (req, res) => {
         ]
 
     })
-
+// console.log(userReviews)
     let reviewList = [];
     userReviews.forEach(review => {
       reviewList.push(review.toJSON())
     })
-      //  console.log(reviewList)
+
+      // console.log(reviewList)
     reviewList.forEach(review => {
-    //  console.log(review.Spot.SpotImages)
+    //  console.log(review.Spot)
      let spotImageArr = review.Spot.SpotImages
+    //  console.log(spotImageArr)
     //  console.log(spotImageArr[0].preview)
      for (let el of spotImageArr) {
+      // console.log(el)
       if (el.preview === true) {
+        // console.log(review.Spot)
+        // console.log(el.url)
+
         review.Spot.previewImage = el.url
       }
       if (!el.preview) {
@@ -64,15 +70,15 @@ router.get('/current', requireAuth, async (req, res) => {
       }
       delete review.Spot.SpotImages
      }
+
     })
 
-
     // console.log(userReviews)
-    res.json({'Reviews': reviewList})
+    return res.json({'Reviews': reviewList})
 })
 
 
-// ADD an Image to a Review based on the Revies id
+// ADD an Image to a Review based on the Reviews id
 router.post('/:reviewId/images', requireAuth, async (req, res) => {
   const { reviewId } = req.params;
   const { url } = req.body;
@@ -86,6 +92,14 @@ router.post('/:reviewId/images', requireAuth, async (req, res) => {
     })
   }
 
+  let bookingObj = findReview.toJSON()
+  if (bookingObj.userId !== req.user.id) {
+      res.status(400);
+      res.json({
+          message: 'Authorization required'
+        })
+      }
+
   const findImage = await ReviewImage.findAll({
     where: {reviewId: reviewId}
   })
@@ -93,11 +107,12 @@ router.post('/:reviewId/images', requireAuth, async (req, res) => {
   findImage.forEach(image => {
     imageArr.push(image.toJSON())
   })
+  console.log(imageArr)
   if (imageArr.length >= 10) {
-    res.status(403);
+    res.status(400);
     return res.json({
       message: "Maximum number of images for this resource was reached",
-      statusCode: 403
+      statusCode: 400
     })
   }
 
@@ -138,11 +153,19 @@ router.put('/:reviewId', requireAuth, validateReview, async (req, res, next) => 
   const editReview = await Review.findByPk(reviewId);
   if (!editReview) {
     res.status(404);
-    res.json({
+   return  res.json({
       message: "Review couldn't be found",
       statusCode: 404
     })
   }
+  let bookingObj = editReview.toJSON()
+  if (bookingObj.userId !== req.user.id) {
+      res.status(400);
+      res.json({
+          message: 'Authorization required'
+        })
+      }
+
   if (editReview) {
     editReview.update({
 
@@ -167,17 +190,27 @@ router.delete('/:reviewId', requireAuth, async (req, res) => {
 
   const badReview = await Review.findByPk(reviewId);
 
+  if (!badReview) {
+    res.status(404);
+    return res.json({
+      message: "Review couldn't be found",
+      statusCode: 404
+    })
+  }
+
+  let bookingObj = badReview.toJSON()
+  if (bookingObj.userId !== req.user.id) {
+      res.status(400);
+      return res.json({
+          message: 'Authorization required'
+        })
+      }
+
   if (badReview) {
     badReview.destroy();
     return res.json({
       message: "Successfully deleted",
       statusCode: 200
-    })
-  } else {
-    res.status(404);
-    return res.json({
-      message: "Review couldn't be found",
-      statusCode: 404
     })
   }
 })
